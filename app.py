@@ -27,21 +27,29 @@ def process_pdf(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part', 'error')
+        if 'file' not in request.files or 'file_type' not in request.form:
+            flash('No file part or file type not selected', 'error')
             return redirect(request.url)
+        
         file = request.files['file']
+        file_type = request.form['file_type']
+        
         if file.filename == '':
             flash('No selected file', 'error')
             return redirect(request.url)
-        if file and allowed_file(file.filename):
+        
+        if file_type not in app.config['ALLOWED_EXTENSIONS']:
+            flash('Invalid file type selected', 'error')
+            return redirect(request.url)
+        
+        if file and file.filename.lower().endswith(f'.{file_type}'):
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
             
             try:
-                if filename.lower().endswith('.csv'):
+                if file_type == 'csv':
                     df = pd.read_csv(filename)
-                elif filename.lower().endswith('.pdf'):
+                elif file_type == 'pdf':
                     df = process_pdf(filename)
                 insert_data(df)
                 flash('File uploaded and data stored successfully!', 'success')
@@ -50,7 +58,7 @@ def upload_file():
             
             return redirect(url_for('upload_file'))
         else:
-            flash('Invalid file type. Please upload a CSV or PDF file.', 'error')
+            flash(f'Invalid file type. Please upload a {file_type.upper()} file.', 'error')
             return redirect(request.url)
     
     # Get all data from the database
