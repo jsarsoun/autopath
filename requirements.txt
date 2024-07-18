@@ -3,4 +3,4 @@ pandas==2.0.3
 PyPDF2==3.0.1
 opencv-python==4.5.5.64
 pytesseract==0.3.8
-Pillow==8.4.0
+Pillow==9.5.0
