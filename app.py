@@ -92,7 +92,9 @@ def upload_png():
             
             data = parse_image(filename)
             if data and 'error' in data[0]:
-                flash(data[0]['error'], 'error')
+                error_message = data[0]['error']
+                error_details = data[0].get('details', '')
+                flash(f"{error_message} {error_details}", 'error')
                 return redirect(url_for('upload_png'))
             elif not data:
                 flash('No data could be extracted from the image. Please check the image content and try again.', 'error')

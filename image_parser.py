@@ -47,14 +47,16 @@ def parse_image(image_path):
             all_data.extend(data)
 
         if not all_data:
-            return [{'error': 'No valid data found in the image. Please ensure the image contains text in the format: x y category'}]
+            return [{'error': 'No valid data found in the image. Please ensure the image contains text in the format: x y category', 'details': 'The OCR process completed, but no valid data was extracted. Check if the image is clear and contains the expected format.'}]
 
         return all_data
 
     except pytesseract.pytesseract.TesseractNotFoundError:
-        return [{'error': 'Tesseract is not installed or the path is incorrect. Please install Tesseract OCR and set the TESSERACT_PATH environment variable.'}]
+        return [{'error': 'Tesseract is not installed or the path is incorrect.', 'details': 'Please install Tesseract OCR and set the TESSERACT_PATH environment variable.'}]
+    except cv2.error as e:
+        return [{'error': 'Error processing the image with OpenCV', 'details': str(e)}]
     except Exception as e:
-        return [{'error': f'An error occurred while processing the image: {str(e)}'}]
+        return [{'error': 'An unexpected error occurred while processing the image', 'details': str(e)}]
 
 # Example usage:
 # data = parse_image('path/to/your/image.png')
