@@ -6,7 +6,7 @@ from image_parser import parse_image
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf'}
+app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf', 'png'}
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 # Ensure the upload folder exists
@@ -73,20 +73,41 @@ def view_pdf():
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
 
-@app.route('/parse_image')
-def parse_image_route():
-    image_path = 'c:\\Users\\jsars\\Programming\\autopath\\newplot.png'
-    data = parse_image(image_path)
-    return jsonify(data)
+@app.route('/upload_png', methods=['GET', 'POST'])
+def upload_png():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        
+        if file and file.filename.lower().endswith('.png'):
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filename)
+            
+            try:
+                data = parse_image(filename)
+                if data and 'error' in data[0]:
+                    flash(data[0]['error'], 'error')
+                    return redirect(url_for('index'))
+                return render_template('view_image_data.html', image_data=data)
+            except Exception as e:
+                flash(f'Error processing file: {str(e)}', 'error')
+                return redirect(url_for('index'))
+        else:
+            flash('Invalid file type. Please upload a PNG file.', 'error')
+            return redirect(request.url)
+    
+    return render_template('upload_png.html')
 
 @app.route('/view_image_data')
 def view_image_data():
-    image_path = 'c:\\Users\\jsars\\Programming\\autopath\\newplot.png'
-    data = parse_image(image_path)
-    if data and 'error' in data[0]:
-        flash(data[0]['error'], 'error')
-        return redirect(url_for('index'))
-    return render_template('view_image_data.html', image_data=data)
+    return render_template('view_image_data.html', image_data=[])
 
 if __name__ == '__main__':
     init_db()
