@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -36,15 +36,25 @@
     {% if image_data %}
         <table>
             <tr>
-                <th>X</th>
-                <th>Y</th>
-                <th>Category</th>
+                <th>Team Number</th>
+                <th>Total Points</th>
+                <th>Auto Leave</th>
+                <th>Auto Speaker</th>
+                <th>Teleop Amp</th>
+                <th>Teleop Speaker</th>
+                <th>Endgame Onstage</th>
+                <th>Endgame Park</th>
             </tr>
             {% for item in image_data %}
             <tr>
-                <td>{{ item.x }}</td>
-                <td>{{ item.y }}</td>
-                <td>{{ item.category }}</td>
+                <td>{{ item.team_number }}</td>
+                <td>{{ item.total_points }}</td>
+                <td>{{ item.auto_leave }}</td>
+                <td>{{ item.auto_speaker }}</td>
+                <td>{{ item.teleop_amp }}</td>
+                <td>{{ item.teleop_speaker }}</td>
+                <td>{{ item.endgame_onstage }}</td>
+                <td>{{ item.endgame_park }}</td>
             </tr>
             {% endfor %}
         </table>
