@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file, jsonify
 import pandas as pd
 from database import init_db, insert_data, get_all_data, get_pdf_files
@@ -15,6 +17,9 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def generate_unique_filename():
+    return ''.join(random.choices(string.digits, k=10))
 
 @app.route('/')
 def index():
@@ -87,7 +92,9 @@ def upload_png():
             return redirect(request.url)
         
         if file and file.filename.lower().endswith('.png'):
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            # Generate a unique filename
+            unique_filename = f"{generate_unique_filename()}.png"
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
             file.save(filename)
             
             import io
@@ -116,7 +123,7 @@ def upload_png():
             df = pd.DataFrame(data)
             insert_data(df, 'png')
             
-            flash('Image data successfully extracted and stored!', 'success')
+            flash(f'Image data successfully extracted and stored! File saved as {unique_filename}', 'success')
             return render_template('view_image_data.html', image_data=data, ocr_output=ocr_output)
         else:
             flash('Invalid file type. Please upload a PNG file.', 'error')
