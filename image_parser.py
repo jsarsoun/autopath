@@ -50,10 +50,20 @@ def parse_image(image_path):
                         'endgame_park': 0
                     }
                     
-                    # You would need to implement color detection here
-                    # For simplicity, let's just assign random values
-                    for task in task_points:
-                        task_points[task] = np.random.randint(0, total_points)
+                    # Implement color detection
+                    colors = {
+                        'auto_leave': ([0, 100, 100], [10, 255, 255]),  # Red
+                        'auto_speaker': ([110, 100, 100], [130, 255, 255]),  # Blue
+                        'teleop_amp': ([50, 100, 100], [70, 255, 255]),  # Green
+                        'teleop_speaker': ([20, 100, 100], [40, 255, 255]),  # Yellow
+                        'endgame_onstage': ([130, 100, 100], [150, 255, 255]),  # Purple
+                        'endgame_park': ([160, 100, 100], [180, 255, 255])  # Pink
+                    }
+                    
+                    hsv = cv2.cvtColor(bar_img, cv2.COLOR_BGR2HSV)
+                    for task, (lower, upper) in colors.items():
+                        mask = cv2.inRange(hsv, np.array(lower), np.array(upper))
+                        task_points[task] = int(np.sum(mask > 0) / (w * h) * total_points)
                     
                     data.append({
                         'team_number': int(team_number),
