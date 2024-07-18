@@ -90,15 +90,14 @@ def upload_png():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
             
-            try:
-                data = parse_image(filename)
-                if data and 'error' in data[0]:
-                    flash(data[0]['error'], 'error')
-                    return redirect(url_for('index'))
-                return render_template('view_image_data.html', image_data=data)
-            except Exception as e:
-                flash(f'Error processing file: {str(e)}', 'error')
-                return redirect(url_for('index'))
+            data = parse_image(filename)
+            if data and 'error' in data[0]:
+                flash(data[0]['error'], 'error')
+                return redirect(url_for('upload_png'))
+            elif not data:
+                flash('No data could be extracted from the image. Please check the image content and try again.', 'error')
+                return redirect(url_for('upload_png'))
+            return render_template('view_image_data.html', image_data=data)
         else:
             flash('Invalid file type. Please upload a PNG file.', 'error')
             return redirect(request.url)
