@@ -1,7 +1,8 @@
 import os
-from flask import Flask, request, render_template, redirect, url_for, flash, send_file
+from flask import Flask, request, render_template, redirect, url_for, flash, send_file, jsonify
 import pandas as pd
 from database import init_db, insert_data, get_all_data, get_pdf_files
+from image_parser import parse_image
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -71,6 +72,12 @@ def view_pdf():
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+
+@app.route('/parse_image')
+def parse_image_route():
+    image_path = 'c:\\Users\\jsars\\Programming\\autopath\\newplot.png'
+    data = parse_image(image_path)
+    return jsonify(data)
 
 if __name__ == '__main__':
     init_db()
