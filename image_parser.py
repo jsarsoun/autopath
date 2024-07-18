@@ -1,12 +1,16 @@
 import cv2
 import numpy as np
 from PIL import Image
+import os
 
 def parse_image(image_path):
     try:
         import pytesseract
+        # Set the path to the Tesseract executable
+        tesseract_path = os.environ.get('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
     except ImportError:
-        return [{'error': 'Pytesseract is not installed. Please install it and make sure it\'s in your PATH.'}]
+        return [{'error': 'Pytesseract is not installed. Please install it using pip install pytesseract.'}]
 
     try:
         # Read the image
@@ -37,7 +41,7 @@ def parse_image(image_path):
         
         return data if data else [{'error': 'No valid data found in the image.'}]
     except pytesseract.pytesseract.TesseractNotFoundError:
-        return [{'error': 'Tesseract is not installed or it\'s not in your PATH. Please install Tesseract OCR and make sure it\'s in your PATH.'}]
+        return [{'error': 'Tesseract is not installed or the path is incorrect. Please install Tesseract OCR and set the TESSERACT_PATH environment variable.'}]
     except Exception as e:
         return [{'error': f'An error occurred while processing the image: {str(e)}'}]
 
