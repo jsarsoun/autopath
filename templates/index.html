@@ -40,6 +40,7 @@
         <a href="{{ url_for('view_csv') }}">View CSV Data</a>
         <a href="{{ url_for('view_pdf') }}">View PDF Files</a>
         <a href="{{ url_for('view_image_data') }}">View Image Data</a>
+        <a href="{{ url_for('upload_png') }}">Upload PNG</a>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
