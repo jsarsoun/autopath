@@ -83,6 +83,9 @@ def parse_image_route():
 def view_image_data():
     image_path = 'c:\\Users\\jsars\\Programming\\autopath\\newplot.png'
     data = parse_image(image_path)
+    if data and 'error' in data[0]:
+        flash(data[0]['error'], 'error')
+        return redirect(url_for('index'))
     return render_template('view_image_data.html', image_data=data)
 
 if __name__ == '__main__':

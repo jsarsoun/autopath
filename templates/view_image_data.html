@@ -33,19 +33,23 @@
     <a href="{{ url_for('index') }}">Back to Home</a>
     <h1>Image Data</h1>
     
-    <table>
-        <tr>
-            <th>X</th>
-            <th>Y</th>
-            <th>Category</th>
-        </tr>
-        {% for item in image_data %}
-        <tr>
-            <td>{{ item.x }}</td>
-            <td>{{ item.y }}</td>
-            <td>{{ item.category }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% if image_data %}
+        <table>
+            <tr>
+                <th>X</th>
+                <th>Y</th>
+                <th>Category</th>
+            </tr>
+            {% for item in image_data %}
+            <tr>
+                <td>{{ item.x }}</td>
+                <td>{{ item.y }}</td>
+                <td>{{ item.category }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No image data available.</p>
+    {% endif %}
 </body>
 </html>
