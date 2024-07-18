@@ -34,10 +34,17 @@ def parse_image(image_path):
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             if h > height * 0.1:  # Filter out small contours
-                bar_img = img[y:y+h, x:x+w]
-                ocr_output = pytesseract.image_to_string(bar_img, config='--psm 7 -c tessedit_char_whitelist=0123456789')
+                # Focus on the bottom part of the bar for team number
+                team_number_region = img[y+h-int(h*0.2):y+h, x:x+w]
+                
+                # Preprocess the team number region
+                team_number_gray = cv2.cvtColor(team_number_region, cv2.COLOR_BGR2GRAY)
+                team_number_thresh = cv2.threshold(team_number_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+                
+                # Use Tesseract to recognize the team number
+                ocr_output = pytesseract.image_to_string(team_number_thresh, config='--psm 7 -c tessedit_char_whitelist=0123456789')
                 print(f"Tesseract OCR output: {ocr_output}")
-                team_number = ocr_output.strip()
+                team_number = ''.join(filter(str.isdigit, ocr_output))
                 
                 if team_number:
                     print(f"Recognized team number: {team_number}")
@@ -63,7 +70,7 @@ def parse_image(image_path):
                         'endgame_park': ([160, 100, 100], [180, 255, 255])  # Pink
                     }
                     
-                    hsv = cv2.cvtColor(bar_img, cv2.COLOR_BGR2HSV)
+                    hsv = cv2.cvtColor(img[y:y+h, x:x+w], cv2.COLOR_BGR2HSV)
                     for task, (lower, upper) in colors.items():
                         mask = cv2.inRange(hsv, np.array(lower), np.array(upper))
                         task_points[task] = int(np.sum(mask > 0) / (w * h) * total_points)
