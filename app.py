@@ -99,7 +99,13 @@ def upload_png():
             elif not data:
                 flash('No data could be extracted from the image. Please check the image content and try again.', 'error')
                 return redirect(url_for('upload_png'))
-            return render_template('view_image_data.html', image_data=data)
+            
+            # Store the extracted data in the database
+            df = pd.DataFrame(data)
+            insert_data(df, 'png')
+            
+            flash('Image data successfully extracted and stored!', 'success')
+            return redirect(url_for('view_image_data'))
         else:
             flash('Invalid file type. Please upload a PNG file.', 'error')
             return redirect(request.url)
