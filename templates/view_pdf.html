@@ -26,11 +26,15 @@
 <body>
     <h1>PDF Files</h1>
     
-    <ul>
-        {% for pdf in pdf_files %}
-        <li><a href="{{ url_for('download_file', filename=pdf.filename) }}">{{ pdf.filename }}</a></li>
-        {% endfor %}
-    </ul>
+    {% if pdf_files %}
+        <ul>
+            {% for pdf in pdf_files %}
+            <li><a href="{{ url_for('download_file', filename=pdf.filename) }}">{{ pdf.filename }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No PDF files have been uploaded yet.</p>
+    {% endif %}
 
     <a href="{{ url_for('index') }}">Back to Home</a>
 </body>
