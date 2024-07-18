@@ -90,7 +90,19 @@ def upload_png():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
             
+            import io
+            import sys
+
+            # Capture print output
+            old_stdout = sys.stdout
+            sys.stdout = buffer = io.StringIO()
+            
             data = parse_image(filename)
+            
+            # Restore stdout and get the captured output
+            sys.stdout = old_stdout
+            ocr_output = buffer.getvalue()
+            
             if data and 'error' in data[0]:
                 error_message = data[0]['error']
                 error_details = data[0].get('details', '')
@@ -105,7 +117,7 @@ def upload_png():
             insert_data(df, 'png')
             
             flash('Image data successfully extracted and stored!', 'success')
-            return redirect(url_for('view_image_data'))
+            return render_template('view_image_data.html', image_data=data, ocr_output=ocr_output)
         else:
             flash('Invalid file type. Please upload a PNG file.', 'error')
             return redirect(request.url)

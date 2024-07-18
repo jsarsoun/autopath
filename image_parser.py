@@ -35,9 +35,12 @@ def parse_image(image_path):
             x, y, w, h = cv2.boundingRect(contour)
             if h > height * 0.1:  # Filter out small contours
                 bar_img = img[y:y+h, x:x+w]
-                team_number = pytesseract.image_to_string(bar_img, config='--psm 7 -c tessedit_char_whitelist=0123456789').strip()
+                ocr_output = pytesseract.image_to_string(bar_img, config='--psm 7 -c tessedit_char_whitelist=0123456789')
+                print(f"Tesseract OCR output: {ocr_output}")
+                team_number = ocr_output.strip()
                 
                 if team_number:
+                    print(f"Recognized team number: {team_number}")
                     total_points = int((height - y) / height * 20)  # Estimate total points
                     
                     # Estimate points for each task based on color
