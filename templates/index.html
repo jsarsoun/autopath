@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Upload and Data Display</title>
+    <title>File Upload and Data Display</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
             margin: 0 auto;
             padding: 20px;
         }
-        h1 {
+        h1, h2 {
             color: #333;
         }
         form {
@@ -20,6 +20,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
@@ -45,7 +46,7 @@
     </style>
 </head>
 <body>
-    <h1>CSV Upload and Data Display</h1>
+    <h1>File Upload and Data Display</h1>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -65,20 +66,27 @@
         <input type="submit" value="Upload">
     </form>
     
-    <h2>Stored Data</h2>
+    <h2>CSV Data</h2>
     <table>
         <tr>
-            {% for column in columns %}
+            {% for column in csv_columns %}
             <th>{{ column }}</th>
             {% endfor %}
         </tr>
-        {% for row in data %}
+        {% for row in csv_data %}
         <tr>
-            {% for column in columns %}
+            {% for column in csv_columns %}
             <td>{{ row[column] }}</td>
             {% endfor %}
         </tr>
         {% endfor %}
     </table>
+
+    <h2>PDF Files</h2>
+    <ul>
+        {% for pdf in pdf_files %}
+        <li><a href="{{ url_for('download_file', filename=pdf.filename) }}">{{ pdf.filename }}</a></li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

@@ -1,8 +1,7 @@
 import os
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
-from PyPDF2 import PdfReader
-from database import init_db, insert_data, get_all_data
+from database import init_db, insert_data, get_all_data, get_pdf_files
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -15,14 +14,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-def process_pdf(filename):
-    with open(filename, 'rb') as file:
-        pdf = PdfReader(file)
-        text = ""
-        for page in pdf.pages:
-            text += page.extract_text()
-    return pd.DataFrame({'content': [text]})
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -49,10 +40,10 @@ def upload_file():
             try:
                 if file_type == 'csv':
                     df = pd.read_csv(filename)
+                    insert_data(df, file_type)
                 elif file_type == 'pdf':
-                    df = process_pdf(filename)
-                insert_data(df)
-                flash('File uploaded and data stored successfully!', 'success')
+                    insert_data(pd.DataFrame({'filename': [file.filename]}), file_type)
+                flash('File uploaded and stored successfully!', 'success')
             except Exception as e:
                 flash(f'Error processing file: {str(e)}', 'error')
             
@@ -62,8 +53,13 @@ def upload_file():
             return redirect(request.url)
     
     # Get all data from the database
-    df = get_all_data()
-    return render_template('index.html', data=df.to_dict(orient='records'), columns=df.columns)
+    csv_data = get_all_data()
+    pdf_files = get_pdf_files()
+    return render_template('index.html', csv_data=csv_data.to_dict(orient='records'), csv_columns=csv_data.columns, pdf_files=pdf_files)
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
 
 if __name__ == '__main__':
     init_db()
