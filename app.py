@@ -79,6 +79,12 @@ def parse_image_route():
     data = parse_image(image_path)
     return jsonify(data)
 
+@app.route('/view_image_data')
+def view_image_data():
+    image_path = 'c:\\Users\\jsars\\Programming\\autopath\\newplot.png'
+    data = parse_image(image_path)
+    return render_template('view_image_data.html', image_data=data)
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
