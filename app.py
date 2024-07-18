@@ -15,7 +15,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files or 'file_type' not in request.form:
@@ -52,10 +56,17 @@ def upload_file():
             flash(f'Invalid file type. Please upload a {file_type.upper()} file.', 'error')
             return redirect(request.url)
     
-    # Get all data from the database
+    return render_template('upload.html')
+
+@app.route('/view_csv')
+def view_csv():
     csv_data = get_all_data()
+    return render_template('view_csv.html', csv_data=csv_data.to_dict(orient='records'), csv_columns=csv_data.columns)
+
+@app.route('/view_pdf')
+def view_pdf():
     pdf_files = get_pdf_files()
-    return render_template('index.html', csv_data=csv_data.to_dict(orient='records'), csv_columns=csv_data.columns, pdf_files=pdf_files)
+    return render_template('view_pdf.html', pdf_files=pdf_files)
 
 @app.route('/download/<filename>')
 def download_file(filename):
