@@ -19,3 +19,11 @@ def insert_data(df):
         conn.execute('INSERT INTO csv_data (data) VALUES (?)', (data,))
     conn.commit()
     conn.close()
+
+def get_all_data():
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('SELECT * FROM csv_data')
+    data = c.fetchall()
+    conn.close()
+    return data
