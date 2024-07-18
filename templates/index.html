@@ -63,13 +63,15 @@
     <h2>Stored Data</h2>
     <table>
         <tr>
-            <th>ID</th>
-            <th>Data</th>
+            {% for column in columns %}
+            <th>{{ column }}</th>
+            {% endfor %}
         </tr>
         {% for row in data %}
         <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
+            {% for column in columns %}
+            <td>{{ row[column] }}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </table>

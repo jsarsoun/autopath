@@ -43,8 +43,8 @@ def upload_file():
             return redirect(request.url)
     
     # Get all data from the database
-    data = get_all_data()
-    return render_template('index.html', data=data)
+    df = get_all_data()
+    return render_template('index.html', data=df.to_dict(orient='records'), columns=df.columns)
 
 if __name__ == '__main__':
     init_db()
