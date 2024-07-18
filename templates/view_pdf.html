@@ -24,6 +24,7 @@
     </style>
 </head>
 <body>
+    <a href="{{ url_for('index') }}">Back to Home</a>
     <h1>PDF Files</h1>
     
     {% if pdf_files %}
@@ -35,7 +36,5 @@
     {% else %}
         <p>No PDF files have been uploaded yet.</p>
     {% endif %}
-
-    <a href="{{ url_for('index') }}">Back to Home</a>
 </body>
 </html>
