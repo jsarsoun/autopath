@@ -124,7 +124,12 @@ def upload_png():
             insert_data(df, 'png')
             
             flash(f'Image data successfully extracted and stored! File saved as {unique_filename}', 'success')
-            return render_template('view_image_data.html', image_data=data, ocr_output=ocr_output)
+            
+            # Get the list of debug images
+            debug_images = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.startswith('debug_team_number_')]
+            debug_image_urls = [url_for('static', filename=f'uploads/{f}') for f in debug_images]
+            
+            return render_template('view_image_data.html', image_data=data, ocr_output=ocr_output, debug_images=debug_image_urls)
         else:
             flash('Invalid file type. Please upload a PNG file.', 'error')
             return redirect(request.url)
