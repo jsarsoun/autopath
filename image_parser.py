@@ -31,11 +31,11 @@ def parse_image(image_path):
 
         # Extract data from each bar
         data = []
-        for contour in contours:
+        for i, contour in enumerate(contours):
             x, y, w, h = cv2.boundingRect(contour)
-            if h > height * 0.1:  # Filter out small contours
+            if h > height * 0.05:  # Reduced height threshold to 5% of image height
                 # Focus on the bottom part of the bar for team number
-                team_number_region = img[y+h-int(h*0.15):y+h, x:x+w]
+                team_number_region = img[y+h-int(h*0.3):y+h, x:x+w]  # Increased region to 30% of bar height
                 
                 # Preprocess the team number region
                 team_number_gray = cv2.cvtColor(team_number_region, cv2.COLOR_BGR2GRAY)
@@ -43,18 +43,19 @@ def parse_image(image_path):
                 team_number_thresh = cv2.threshold(team_number_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
                 
                 # Dilate the image to make the digits more prominent
-                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4,4))  # Increased kernel size
                 team_number_dilated = cv2.dilate(team_number_thresh, kernel, iterations=1)
                 
                 # Use Tesseract to recognize the team number
                 ocr_output = pytesseract.image_to_string(team_number_dilated, config='--psm 7 -c tessedit_char_whitelist=0123456789')
-                print(f"Tesseract OCR output: {ocr_output}")
+                print(f"Bar {i+1} - Tesseract OCR output: {ocr_output}")
                 team_number = ''.join(filter(str.isdigit, ocr_output))
                 
+                # Save the preprocessed image for debugging (for all bars)
+                cv2.imwrite(os.path.join(os.path.dirname(image_path), f'debug_team_number_bar_{i+1}.png'), team_number_dilated)
+                
                 if team_number:
-                    print(f"Recognized team number: {team_number}")
-                    # Save the preprocessed image for debugging
-                    cv2.imwrite(os.path.join(os.path.dirname(image_path), f'debug_team_number_{team_number}.png'), team_number_dilated)
+                    print(f"Bar {i+1} - Recognized team number: {team_number}")
                     total_points = int((height - y) / height * 20)  # Estimate total points
                     
                     # Estimate points for each task based on color
@@ -87,6 +88,8 @@ def parse_image(image_path):
                         'total_points': total_points,
                         **task_points
                     })
+                else:
+                    print(f"Bar {i+1} - No team number recognized")
 
         if not data:
             return [{'error': 'No valid data found in the image.', 'details': 'The image processing completed, but no valid data was extracted. Check if the image is clear and contains the expected bar chart format.'}]
