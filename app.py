@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
+import os
 import pandas as pd
 from database import init_db, insert_data, get_all_data, get_pdf_files, insert_team_points, get_team_points, get_latest_team_points
 
@@ -46,11 +47,14 @@ def upload_file():
                 if file_type == 'csv':
                     df = pd.read_csv(filename)
                     insert_data(df, file_type)
+                    os.remove(filename)  # Delete the CSV file after successful insertion
                 elif file_type == 'pdf':
                     insert_data(pd.DataFrame({'filename': [file.filename]}), file_type)
                 flash('File uploaded and stored successfully!', 'success')
             except Exception as e:
                 flash(f'Error processing file: {str(e)}', 'error')
+                if file_type == 'csv' and os.path.exists(filename):
+                    os.remove(filename)  # Delete the CSV file if an error occurred
             
             return redirect(url_for('upload_file'))
         else:
