@@ -48,16 +48,18 @@ def upload_file():
                     required_columns = ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']
                     if all(col in df.columns for col in required_columns):
                         insert_data(df, 'team_points')
+                        flash('Team points data uploaded and stored successfully!', 'success')
                     else:
                         insert_data(df, file_type)
+                        flash('CSV file uploaded and stored successfully!', 'success')
                     os.remove(filename)  # Delete the CSV file after successful insertion
                 elif file_type == 'pdf':
                     insert_data(pd.DataFrame({'filename': [file.filename]}), file_type)
-                flash('File uploaded and stored successfully!', 'success')
+                    flash('PDF file uploaded and stored successfully!', 'success')
             except Exception as e:
                 flash(f'Error processing file: {str(e)}', 'error')
-                if file_type == 'csv' and os.path.exists(filename):
-                    os.remove(filename)  # Delete the CSV file if an error occurred
+                if os.path.exists(filename):
+                    os.remove(filename)  # Delete the file if an error occurred
             
             return redirect(url_for('upload_file'))
         else:

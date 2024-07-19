@@ -47,11 +47,15 @@
     <form method="post" enctype="multipart/form-data">
         <select name="file_type" required>
             <option value="">Select file type</option>
-            <option value="csv">CSV</option>
+            <option value="csv">CSV (Team Points or Other Data)</option>
             <option value="pdf">PDF</option>
         </select>
         <input type="file" name="file" required>
         <input type="submit" value="Upload">
     </form>
+    <p>
+        Note: For team points data, please ensure your CSV file includes the following columns:
+        Team_Number, Total_Points, Auto_Amp, Auto_Leave, and Auto_Speaker.
+    </p>
 </body>
 </html>
