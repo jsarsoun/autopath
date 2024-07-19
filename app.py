@@ -96,6 +96,8 @@ def upload_team_points():
             
             column_headers = df.columns.tolist()
             print("Column headers:", column_headers)
+            with open('column_headers.txt', 'w') as f:
+                f.write(str(column_headers))
             required_columns = ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']
             if all(col in column_headers for col in required_columns):
                 df = df.rename(columns={'Team_Number': 'team', 'Total_Points': 'points'})
