@@ -53,5 +53,11 @@
         <input type="file" name="file" required>
         <input type="submit" value="Upload">
     </form>
+
+    <h2>Upload Team Points</h2>
+    <form method="post" action="{{ url_for('upload_team_points') }}" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv,.xlsx" required>
+        <input type="submit" value="Upload Team Points">
+    </form>
 </body>
 </html>

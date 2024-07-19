@@ -1,11 +1,11 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
-from database import init_db, insert_data, get_all_data, get_pdf_files
+from database import init_db, insert_data, get_all_data, get_pdf_files, insert_team_points, get_team_points
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf'}
+app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf', 'xlsx'}
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 # Ensure the upload folder exists
@@ -71,6 +71,46 @@ def view_pdf():
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+
+@app.route('/upload_team_points', methods=['POST'])
+def upload_team_points():
+    if 'file' not in request.files:
+        flash('No file part', 'error')
+        return redirect(url_for('upload_file'))
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect(url_for('upload_file'))
+    
+    if file and file.filename.lower().endswith(('.csv', '.xlsx')):
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filename)
+        
+        try:
+            if file.filename.lower().endswith('.csv'):
+                df = pd.read_csv(filename)
+            else:
+                df = pd.read_excel(filename)
+            
+            if 'team' in df.columns and 'points' in df.columns:
+                insert_team_points(df)
+                flash('Team points uploaded and stored successfully!', 'success')
+            else:
+                flash('Invalid file format. Please ensure the file has "team" and "points" columns.', 'error')
+        except Exception as e:
+            flash(f'Error processing file: {str(e)}', 'error')
+        
+        return redirect(url_for('upload_file'))
+    else:
+        flash('Invalid file type. Please upload a CSV or Excel file.', 'error')
+        return redirect(url_for('upload_file'))
+
+@app.route('/view_team_points')
+def view_team_points():
+    team_points = get_team_points()
+    return render_template('view_team_points.html', team_points=team_points)
 
 if __name__ == '__main__':
     init_db()

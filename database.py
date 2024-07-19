@@ -8,12 +8,17 @@ def init_db():
     c = conn.cursor()
     c.execute('DROP TABLE IF EXISTS csv_data')
     c.execute('DROP TABLE IF EXISTS pdf_files')
+    c.execute('DROP TABLE IF EXISTS team_points')
     c.execute('''CREATE TABLE csv_data
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   content TEXT)''')
     c.execute('''CREATE TABLE pdf_files
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   filename TEXT)''')
+    c.execute('''CREATE TABLE team_points
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  team TEXT,
+                  points INTEGER)''')
     conn.commit()
     conn.close()
 
@@ -55,3 +60,22 @@ def get_pdf_files():
     conn.close()
 
     return [{'id': row[0], 'filename': row[1]} for row in rows]
+
+def insert_team_points(df):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    
+    for _, row in df.iterrows():
+        cursor.execute("INSERT INTO team_points (team, points) VALUES (?, ?)", (row['team'], row['points']))
+    
+    conn.commit()
+    conn.close()
+
+def get_team_points():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM team_points")
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [{'id': row[0], 'team': row[1], 'points': row[2]} for row in rows]
