@@ -18,7 +18,8 @@ def init_db():
     c.execute('''CREATE TABLE team_points
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   team TEXT,
-                  points INTEGER)''')
+                  points INTEGER,
+                  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
 
@@ -74,8 +75,26 @@ def insert_team_points(df):
 def get_team_points():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM team_points")
+    cursor.execute("SELECT * FROM team_points ORDER BY timestamp DESC")
     rows = cursor.fetchall()
     conn.close()
 
-    return [{'id': row[0], 'team': row[1], 'points': row[2]} for row in rows]
+    return [{'id': row[0], 'team': row[1], 'points': row[2], 'timestamp': row[3]} for row in rows]
+
+def get_latest_team_points():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT t1.*
+        FROM team_points t1
+        INNER JOIN (
+            SELECT team, MAX(timestamp) as max_timestamp
+            FROM team_points
+            GROUP BY team
+        ) t2 ON t1.team = t2.team AND t1.timestamp = t2.max_timestamp
+        ORDER BY t1.points DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [{'id': row[0], 'team': row[1], 'points': row[2], 'timestamp': row[3]} for row in rows]

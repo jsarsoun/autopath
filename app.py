@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
-from database import init_db, insert_data, get_all_data, get_pdf_files, insert_team_points, get_team_points
+from database import init_db, insert_data, get_all_data, get_pdf_files, insert_team_points, get_team_points, get_latest_team_points
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -109,8 +109,9 @@ def upload_team_points():
 
 @app.route('/view_team_points')
 def view_team_points():
-    team_points = get_team_points()
-    return render_template('view_team_points.html', team_points=team_points)
+    all_team_points = get_team_points()
+    latest_team_points = get_latest_team_points()
+    return render_template('view_team_points.html', all_team_points=all_team_points, latest_team_points=latest_team_points)
 
 if __name__ == '__main__':
     init_db()
