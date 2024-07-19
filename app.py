@@ -5,7 +5,7 @@ from database import init_db, insert_data, get_all_data, get_pdf_files
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf', 'png'}
+app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf'}
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 # Ensure the upload folder exists
@@ -67,45 +67,6 @@ def view_csv():
 def view_pdf():
     pdf_files = get_pdf_files()
     return render_template('view_pdf.html', pdf_files=pdf_files)
-
-@app.route('/upload_png', methods=['GET', 'POST'])
-def upload_png():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part', 'error')
-            return redirect(request.url)
-        
-        file = request.files['file']
-        
-        if file.filename == '':
-            flash('No selected file', 'error')
-            return redirect(request.url)
-        
-        if file and file.filename.lower().endswith('.png'):
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filename)
-            
-            try:
-                from image_parser import parse_image
-                image_data = parse_image(filename)
-                
-                # Get the directory of the uploaded file
-                upload_dir = os.path.dirname(filename)
-                
-                # Get all debug images
-                debug_images = [f for f in os.listdir(upload_dir) if f.startswith('debug_team_number_bar_')]
-                debug_image_urls = [url_for('static', filename=f'uploads/{img}') for img in debug_images]
-                
-                return render_template('view_image_data.html', image_data=image_data, debug_images=debug_image_urls)
-            except Exception as e:
-                flash(f'Error processing PNG file: {str(e)}', 'error')
-            
-            return redirect(url_for('upload_png'))
-        else:
-            flash('Invalid file type. Please upload a PNG file.', 'error')
-            return redirect(request.url)
-    
-    return render_template('upload_png.html')
 
 @app.route('/download/<filename>')
 def download_file(filename):
