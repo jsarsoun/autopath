@@ -17,7 +17,8 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    latest_team_points = get_latest_team_points()
+    return render_template('index.html', latest_team_points=latest_team_points)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
