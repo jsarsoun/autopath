@@ -96,3 +96,10 @@ def _convert_binary_to_int(df):
         df[col] = df[col].apply(lambda x: int.from_bytes(x, byteorder='little') if isinstance(x, bytes) else x)
     return df
 
+def delete_all_team_points():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM team_points")
+    conn.commit()
+    conn.close()
+

@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
-from database import init_db, insert_data, get_all_data, get_pdf_files, get_team_points, get_latest_team_points
+from database import init_db, insert_data, get_all_data, get_pdf_files, get_team_points, get_latest_team_points, delete_all_team_points
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -47,8 +47,9 @@ def upload_file():
                     df = pd.read_csv(filename)
                     required_columns = ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']
                     if all(col in df.columns for col in required_columns):
+                        delete_all_team_points()  # Delete all existing team points data
                         insert_data(df, 'team_points')
-                        flash('Team points data uploaded and stored successfully!', 'success')
+                        flash('Team points data uploaded and stored successfully! All previous team points data has been deleted.', 'success')
                     else:
                         insert_data(df, file_type)
                         flash('CSV file uploaded and stored successfully!', 'success')
