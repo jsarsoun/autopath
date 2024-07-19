@@ -20,8 +20,8 @@ def parse_image(image_path):
         # Convert to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Threshold the image
-        _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
+        # Apply adaptive thresholding
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
 
         # Find contours
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -33,30 +33,27 @@ def parse_image(image_path):
         data = []
         for i, contour in enumerate(contours):
             x, y, w, h = cv2.boundingRect(contour)
-            if h > height * 0.05:  # Reduced height threshold to 5% of image height
+            if h > height * 0.5 and w > width * 0.05:  # Adjust thresholds as needed
+                # Extract the entire bar
+                bar_region = img[y:y+h, x:x+w]
+                
                 # Focus on the bottom part of the bar for team number
-                team_number_region = img[y+h-int(h*0.3):y+h, x:x+w]  # Increased region to 30% of bar height
+                team_number_region = bar_region[int(h*0.8):, :]
                 
                 # Preprocess the team number region
                 team_number_gray = cv2.cvtColor(team_number_region, cv2.COLOR_BGR2GRAY)
-                team_number_blur = cv2.GaussianBlur(team_number_gray, (5,5), 0)
-                team_number_thresh = cv2.threshold(team_number_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-                
-                # Dilate the image to make the digits more prominent
-                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4,4))  # Increased kernel size
-                team_number_dilated = cv2.dilate(team_number_thresh, kernel, iterations=1)
+                team_number_thresh = cv2.threshold(team_number_gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
                 
                 # Use Tesseract to recognize the team number
-                ocr_output = pytesseract.image_to_string(team_number_dilated, config='--psm 7 -c tessedit_char_whitelist=0123456789')
-                print(f"Bar {i+1} - Tesseract OCR output: {ocr_output}")
-                team_number = ''.join(filter(str.isdigit, ocr_output))
+                team_number = pytesseract.image_to_string(team_number_thresh, config='--psm 7 -c tessedit_char_whitelist=0123456789')
+                team_number = ''.join(filter(str.isdigit, team_number))
                 
-                # Save the preprocessed image for debugging (for all bars)
-                cv2.imwrite(os.path.join(os.path.dirname(image_path), f'debug_team_number_bar_{i+1}.png'), team_number_dilated)
+                # Save the preprocessed image for debugging
+                cv2.imwrite(os.path.join(os.path.dirname(image_path), f'debug_team_number_bar_{i+1}.png'), team_number_thresh)
                 
                 if team_number:
                     print(f"Bar {i+1} - Recognized team number: {team_number}")
-                    total_points = int((height - y) / height * 20)  # Estimate total points
+                    total_points = int((height - y) / height * 100)  # Estimate total points
                     
                     # Estimate points for each task based on color
                     task_points = {
@@ -68,7 +65,7 @@ def parse_image(image_path):
                         'endgame_park': 0
                     }
                     
-                    # Implement color detection
+                    # Define color ranges (in HSV)
                     colors = {
                         'auto_leave': ([0, 100, 100], [10, 255, 255]),  # Red
                         'auto_speaker': ([110, 100, 100], [130, 255, 255]),  # Blue
@@ -78,10 +75,13 @@ def parse_image(image_path):
                         'endgame_park': ([160, 100, 100], [180, 255, 255])  # Pink
                     }
                     
-                    hsv = cv2.cvtColor(img[y:y+h, x:x+w], cv2.COLOR_BGR2HSV)
+                    # Convert bar region to HSV
+                    hsv = cv2.cvtColor(bar_region, cv2.COLOR_BGR2HSV)
+                    
                     for task, (lower, upper) in colors.items():
                         mask = cv2.inRange(hsv, np.array(lower), np.array(upper))
-                        task_points[task] = int(np.sum(mask > 0) / (w * h) * total_points)
+                        task_height = np.sum(mask > 0) // w  # Calculate height of color segment
+                        task_points[task] = int(task_height / h * total_points)
                     
                     data.append({
                         'team_number': int(team_number),
