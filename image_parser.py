@@ -35,15 +35,15 @@ def parse_image(image_path):
             x, y, w, h = cv2.boundingRect(contour)
             if h > height * 0.1:  # Filter out small contours
                 # Focus on the bottom part of the bar for team number
-                team_number_region = img[y+h-int(h*0.3):y+h, x:x+w]
+                team_number_region = img[y+h-int(h*0.15):y+h, x:x+w]
                 
                 # Preprocess the team number region
                 team_number_gray = cv2.cvtColor(team_number_region, cv2.COLOR_BGR2GRAY)
-                team_number_blur = cv2.GaussianBlur(team_number_gray, (3,3), 0)
+                team_number_blur = cv2.GaussianBlur(team_number_gray, (5,5), 0)
                 team_number_thresh = cv2.threshold(team_number_blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
                 
                 # Dilate the image to make the digits more prominent
-                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
                 team_number_dilated = cv2.dilate(team_number_thresh, kernel, iterations=1)
                 
                 # Use Tesseract to recognize the team number
@@ -54,7 +54,7 @@ def parse_image(image_path):
                 if team_number:
                     print(f"Recognized team number: {team_number}")
                     # Save the preprocessed image for debugging
-                    cv2.imwrite(f'debug_team_number_{team_number}.png', team_number_dilated)
+                    cv2.imwrite(os.path.join(os.path.dirname(image_path), f'debug_team_number_{team_number}.png'), team_number_dilated)
                     total_points = int((height - y) / height * 20)  # Estimate total points
                     
                     # Estimate points for each task based on color
