@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
-from database import init_db, insert_data, get_all_data, get_pdf_files
+from database import init_db, insert_data, get_all_data, get_pdf_files, get_team_points, get_latest_team_points
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -17,7 +17,8 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    latest_team_points = get_latest_team_points()
+    return render_template('index.html', latest_team_points=latest_team_points.to_dict(orient='records'))
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -44,7 +45,10 @@ def upload_file():
             try:
                 if file_type == 'csv':
                     df = pd.read_csv(filename)
-                    insert_data(df, file_type)
+                    if 'Team' in df.columns and 'Points' in df.columns:
+                        insert_data(df, 'team_points')
+                    else:
+                        insert_data(df, file_type)
                     os.remove(filename)  # Delete the CSV file after successful insertion
                 elif file_type == 'pdf':
                     insert_data(pd.DataFrame({'filename': [file.filename]}), file_type)
@@ -70,6 +74,12 @@ def view_csv():
 def view_pdf():
     pdf_files = get_pdf_files()
     return render_template('view_pdf.html', pdf_files=pdf_files)
+
+@app.route('/view_team_points')
+def view_team_points():
+    all_team_points = get_team_points()
+    latest_team_points = get_latest_team_points()
+    return render_template('view_team_points.html', all_team_points=all_team_points.to_dict(orient='records'), latest_team_points=latest_team_points.to_dict(orient='records'))
 
 @app.route('/download/<filename>')
 def download_file(filename):
