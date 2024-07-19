@@ -77,7 +77,7 @@ def get_team_points():
     query = "SELECT * FROM team_points ORDER BY timestamp DESC"
     df = pd.read_sql_query(query, conn)
     conn.close()
-    return df
+    return _convert_binary_to_int(df)
 
 def get_latest_team_points():
     conn = sqlite3.connect(DATABASE)
@@ -89,5 +89,10 @@ def get_latest_team_points():
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
+    return _convert_binary_to_int(df)
+
+def _convert_binary_to_int(df):
+    for col in ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']:
+        df[col] = df[col].apply(lambda x: int.from_bytes(x, byteorder='little') if isinstance(x, bytes) else x)
     return df
 
