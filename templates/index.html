@@ -52,7 +52,6 @@
         <a href="{{ url_for('upload_file') }}">Upload File</a>
         <a href="{{ url_for('view_csv') }}">View CSV Data</a>
         <a href="{{ url_for('view_pdf') }}">View PDF Files</a>
-        <a href="{{ url_for('view_team_points') }}">View All Team Points</a>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -62,25 +61,5 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-
-    <h2>Latest Team Points</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Team</th>
-                <th>Points</th>
-                <th>Last Updated</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for point in latest_team_points %}
-            <tr>
-                <td>{{ point.team }}</td>
-                <td>{{ point.points }}</td>
-                <td>{{ point.timestamp }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </body>
 </html>

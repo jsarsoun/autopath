@@ -1,8 +1,7 @@
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file
-import os
 import pandas as pd
-from database import init_db, insert_data, get_all_data, get_pdf_files, insert_team_points, get_team_points, get_latest_team_points
+from database import init_db, insert_data, get_all_data, get_pdf_files
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -18,8 +17,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    latest_team_points = get_latest_team_points()
-    return render_template('index.html', latest_team_points=latest_team_points)
+    return render_template('index.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -77,52 +75,6 @@ def view_pdf():
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
 
-@app.route('/upload_team_points', methods=['POST'])
-def upload_team_points():
-    if 'file' not in request.files:
-        flash('No file part', 'error')
-        return redirect(url_for('upload_file'))
-    
-    file = request.files['file']
-    
-    if file.filename == '':
-        flash('No selected file', 'error')
-        return redirect(url_for('upload_file'))
-    
-    if file and file.filename.lower().endswith(('.csv', '.xlsx')):
-        filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filename)
-        
-        try:
-            if file.filename.lower().endswith('.csv'):
-                df = pd.read_csv(filename)
-            else:
-                df = pd.read_excel(filename)
-            
-            column_headers = df.columns.tolist()
-            print("Column headers:", column_headers)
-            with open('column_headers.txt', 'w') as f:
-                f.write(str(column_headers))
-            required_columns = ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']
-            if all(col in column_headers for col in required_columns):
-                df = df.rename(columns={'Team_Number': 'team', 'Total_Points': 'points'})
-                insert_team_points(df[['team', 'points']])
-                flash('Team points uploaded and stored successfully!', 'success')
-            else:
-                flash(f'Invalid file format. Please ensure the file has these columns: {required_columns}. Actual columns: {column_headers}', 'error')
-        except Exception as e:
-            flash(f'Error processing file: {str(e)}', 'error')
-        
-        return redirect(url_for('upload_file'))
-    else:
-        flash('Invalid file type. Please upload a CSV or Excel file.', 'error')
-        return redirect(url_for('upload_file'))
-
-@app.route('/view_team_points')
-def view_team_points():
-    all_team_points = get_team_points()
-    latest_team_points = get_latest_team_points()
-    return render_template('view_team_points.html', all_team_points=all_team_points, latest_team_points=latest_team_points)
 
 if __name__ == '__main__':
     init_db()
