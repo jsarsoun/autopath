@@ -94,12 +94,12 @@ def upload_team_points():
             else:
                 df = pd.read_excel(filename)
             
-            if 'Team Number' in df.columns and 'points' in df.columns:
-                df = df.rename(columns={'Team Number': 'team'})
+            if 'Team Number' in df.columns and 'Points' in df.columns:
+                df = df.rename(columns={'Team Number': 'team', 'Points': 'points'})
                 insert_team_points(df)
                 flash('Team points uploaded and stored successfully!', 'success')
             else:
-                flash('Invalid file format. Please ensure the file has "Team Number" and "points" columns.', 'error')
+                flash('Invalid file format. Please ensure the file has "Team Number" and "Points" columns.', 'error')
         except Exception as e:
             flash(f'Error processing file: {str(e)}', 'error')
         
