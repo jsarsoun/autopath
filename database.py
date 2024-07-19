@@ -66,6 +66,11 @@ def insert_team_points(df):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
+    # Remove existing records for the teams being inserted
+    teams = tuple(df['team'].unique())
+    cursor.execute(f"DELETE FROM team_points WHERE team IN ({','.join(['?']*len(teams))})", teams)
+    
+    # Insert new records
     for _, row in df.iterrows():
         cursor.execute("INSERT INTO team_points (team, points) VALUES (?, ?)", (row['team'], row['points']))
     
