@@ -17,8 +17,11 @@ def init_db():
                   filename TEXT)''')
     c.execute('''CREATE TABLE team_points
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  team TEXT,
-                  points INTEGER,
+                  Team_Number INTEGER,
+                  Total_Points INTEGER,
+                  Auto_Amp INTEGER,
+                  Auto_Leave INTEGER,
+                  Auto_Speaker INTEGER,
                   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
@@ -35,7 +38,11 @@ def insert_data(df, file_type):
         cursor.execute("INSERT INTO pdf_files (filename) VALUES (?)", (filename,))
     elif file_type == 'team_points':
         for _, row in df.iterrows():
-            cursor.execute("INSERT INTO team_points (team, points) VALUES (?, ?)", (row['Team'], row['Points']))
+            cursor.execute("""
+                INSERT INTO team_points 
+                (Team_Number, Total_Points, Auto_Amp, Auto_Leave, Auto_Speaker) 
+                VALUES (?, ?, ?, ?, ?)
+            """, (row['Team_Number'], row['Total_Points'], row['Auto_Amp'], row['Auto_Leave'], row['Auto_Speaker']))
     
     conn.commit()
     conn.close()
@@ -75,10 +82,10 @@ def get_team_points():
 def get_latest_team_points():
     conn = sqlite3.connect(DATABASE)
     query = """
-    SELECT team, points, MAX(timestamp) as timestamp
+    SELECT Team_Number, Total_Points, Auto_Amp, Auto_Leave, Auto_Speaker, MAX(timestamp) as timestamp
     FROM team_points
-    GROUP BY team
-    ORDER BY points DESC
+    GROUP BY Team_Number
+    ORDER BY Total_Points DESC
     """
     df = pd.read_sql_query(query, conn)
     conn.close()

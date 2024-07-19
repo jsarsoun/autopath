@@ -37,16 +37,22 @@
     <table>
         <thead>
             <tr>
-                <th>Team</th>
-                <th>Points</th>
+                <th>Team Number</th>
+                <th>Total Points</th>
+                <th>Auto Amp</th>
+                <th>Auto Leave</th>
+                <th>Auto Speaker</th>
                 <th>Last Updated</th>
             </tr>
         </thead>
         <tbody>
             {% for point in latest_team_points %}
             <tr>
-                <td>{{ point.team }}</td>
-                <td>{{ point.points }}</td>
+                <td>{{ point.Team_Number }}</td>
+                <td>{{ point.Total_Points }}</td>
+                <td>{{ point.Auto_Amp }}</td>
+                <td>{{ point.Auto_Leave }}</td>
+                <td>{{ point.Auto_Speaker }}</td>
                 <td>{{ point.timestamp }}</td>
             </tr>
             {% endfor %}
@@ -57,16 +63,22 @@
     <table>
         <thead>
             <tr>
-                <th>Team</th>
-                <th>Points</th>
+                <th>Team Number</th>
+                <th>Total Points</th>
+                <th>Auto Amp</th>
+                <th>Auto Leave</th>
+                <th>Auto Speaker</th>
                 <th>Timestamp</th>
             </tr>
         </thead>
         <tbody>
             {% for point in all_team_points %}
             <tr>
-                <td>{{ point.team }}</td>
-                <td>{{ point.points }}</td>
+                <td>{{ point.Team_Number }}</td>
+                <td>{{ point.Total_Points }}</td>
+                <td>{{ point.Auto_Amp }}</td>
+                <td>{{ point.Auto_Leave }}</td>
+                <td>{{ point.Auto_Speaker }}</td>
                 <td>{{ point.timestamp }}</td>
             </tr>
             {% endfor %}

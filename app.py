@@ -45,7 +45,8 @@ def upload_file():
             try:
                 if file_type == 'csv':
                     df = pd.read_csv(filename)
-                    if 'Team' in df.columns and 'Points' in df.columns:
+                    required_columns = ['Team_Number', 'Total_Points', 'Auto_Amp', 'Auto_Leave', 'Auto_Speaker']
+                    if all(col in df.columns for col in required_columns):
                         insert_data(df, 'team_points')
                     else:
                         insert_data(df, file_type)
