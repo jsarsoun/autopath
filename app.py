@@ -1,14 +1,11 @@
 import os
-import random
-import string
-from flask import Flask, request, render_template, redirect, url_for, flash, send_file, jsonify
+from flask import Flask, request, render_template, redirect, url_for, flash, send_file
 import pandas as pd
 from database import init_db, insert_data, get_all_data, get_pdf_files
-from image_parser import parse_image
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf', 'png'}
+app.config['ALLOWED_EXTENSIONS'] = {'csv', 'pdf'}
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
 # Ensure the upload folder exists
@@ -17,9 +14,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-def generate_unique_filename():
-    return ''.join(random.choices(string.digits, k=10))
 
 @app.route('/')
 def index():
@@ -77,69 +71,6 @@ def view_pdf():
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
-
-@app.route('/upload_png', methods=['GET', 'POST'])
-def upload_png():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part', 'error')
-            return redirect(request.url)
-        
-        file = request.files['file']
-        
-        if file.filename == '':
-            flash('No selected file', 'error')
-            return redirect(request.url)
-        
-        if file and file.filename.lower().endswith('.png'):
-            # Generate a unique filename
-            unique_filename = f"{generate_unique_filename()}.png"
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(filename)
-            
-            import io
-            import sys
-
-            # Capture print output
-            old_stdout = sys.stdout
-            sys.stdout = buffer = io.StringIO()
-            
-            data = parse_image(filename)
-            
-            # Restore stdout and get the captured output
-            sys.stdout = old_stdout
-            ocr_output = buffer.getvalue()
-            
-            if data and 'error' in data[0]:
-                error_message = data[0]['error']
-                error_details = data[0].get('details', '')
-                flash(f"{error_message} {error_details}", 'error')
-                return redirect(url_for('upload_png'))
-            elif not data:
-                flash('No data could be extracted from the image. Please check the image content and try again.', 'error')
-                return redirect(url_for('upload_png'))
-            
-            # Store the extracted data in the database
-            df = pd.DataFrame(data)
-            insert_data(df, 'png')
-            
-            flash(f'Image data successfully extracted and stored! File saved as {unique_filename}', 'success')
-            
-            # Get the list of debug images
-            debug_images = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.startswith('debug_team_number_')]
-            debug_image_urls = [url_for('static', filename=f'uploads/{f}') for f in debug_images]
-            
-            # Include the step #1 output (OCR output) in the rendered template
-            return render_template('view_image_data.html', image_data=data, ocr_output=ocr_output, debug_images=debug_image_urls, step1_output=ocr_output)
-        else:
-            flash('Invalid file type. Please upload a PNG file.', 'error')
-            return redirect(request.url)
-    
-    return render_template('upload_png.html')
-
-@app.route('/view_image_data')
-def view_image_data():
-    return render_template('view_image_data.html', image_data=[])
 
 if __name__ == '__main__':
     init_db()
